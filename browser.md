@@ -1,3 +1,98 @@
+# Browser
+
+这篇文章深入 DOM 和 CSSOM 来理解浏览器如何渲染一个页面。浏览器等待某些资源加载好再渲染页面，另一些则异步加载。
+
+## 浏览器获取并解析响应数据
+
+网页的用户体验，常见的问题包括加载资源速度慢，初始化等待不必要的文件下载，一闪而过的无样式内容等等。为了避免这些问题，应该理解浏览器渲染页面的生命周期。
+
+首先，我们要理解 DOM 是什么。浏览器向服务器发出一个请求获取一个 HTML 文档，服务器返回的是一个二进制流格式的，响应头 `Content-Type`，值为 `text/html; charset=UTF-8`，基本上是文本的文件。
+
+响应头中的 `text/html` 表明响应内容是一个 HTML 文档，`charset=UTF-8` 表明该内容由 UTF-8 字符编码。浏览器通过这些将二进制流数据转换为可读的文本文件。
+
+![Alt](https://miro.medium.com/max/700/1*Tm-HPhmGA0BL7HIj38H8Qw.png)
+
+如果没有请求头，浏览器不会知道怎样处理文件，直接渲染纯文本内容。转后，浏览器可以开始解析 HTML 文档。这是一个典型的 HTML 文档。
+
+```HTML
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <title>Rendering Test</title>
+
+        <!-- stylesheet -->
+        <link rel="stylesheet" href="./style.css"/>
+    </head>
+    <body>
+        <div class="container">
+          <h1>Hello World!</h1>
+          <p>This is a sample paragraph.</p>
+        </div>
+
+        <!-- script -->
+        <script src="./main.js"></script>
+    </body>
+</html>
+```
+
+## 浏览器如何实现样式
+
+完整的页面只有 HTML 的文档是不够的，我们还要理解什么是 DOM,CSSOM 以及 Render Tree。
+
+![Alt](https://miro.medium.com/max/700/1*3bFOsAXQPJtczaQcQcVZ1A.png)
+
+### Document Object Model(DOM)
+
+浏览器分析 HTML 代码时，每遇到一个 HTML 元素，如 `html`，`body`，`div`，浏览器都会创建一个 JS 对象也叫做 Node。最终，所有的 HTML 元素都会被转换成 JS 对象。由
+
+由于每个 HTML 元素有不同的属性，节点对象也是不同的子类。比如 `div` 的类是继承 `Node` 类的 `HTMLDivElement`。`HTMLDivElement`，`HTMLScriptElement`，`Node` 都是浏览器内置的类。
+
+浏览器创建完 HTML 文档的节点后，就会将这些节点组成树形结构。由于节点都是互相嵌套的，相同的节点会复用已经创建的 Node 对象。这将帮助浏览器通过生命周期有效渲染和管理页面。
+
+![Alt](https://miro.medium.com/max/520/1*YSA8lCfCVPn3d6GWAVokrA.png)
+
+DOM 不是 JS 规范中的，因此 JS 不明白什么是 DOM。DOM 是浏览器提供的一个高层次抽象的 **WEB API**，用于有效渲染页面并提供给开发者操作 DOM 元素。
+
+### CSS Object Model(CSSOM)
+
+网站也讲究样式美观，因此我们需要提供 HTML 元素样式。在页面中，通过 CSS 也就是层叠样式表提供样式。使用 CSS 选择器可以给指定的 DOM 元素设置样式属性值，如 `color` 和 `font-size`。
+
+有几种为 HTML 元素添加属性的方式，使用 `<style>` 标签内嵌的样式、外部 CSS 文件、HTML 元素行内的 `style` 属性以及 JS。最终，浏览器将 CSS 样式添加到 DOM 元素。
+
+```css
+html {
+    padding: 0;
+    margin: 0;
+}
+
+body {
+    font-size: 14px;
+}
+
+.container {
+    width: 300px;
+    height: 200px;
+    color: black;
+}
+
+.container > h1 {
+    color: gray;
+}
+
+.container > p {
+    font-size: 12px;
+    display: none;
+}
+```
+
+在 DOM 树创建完成后，浏览器从所有渠道读取样式并构建 CSSOM 也就是 CSS Object Model，也是像 DOM 一样的树形结构。
+
+树中的每一个节点都包含着目标 DOM 的 CSS 样式信息。然而 CSSOM 无法像 DOM 元素一样打印在页面上。
+
+大多数浏览器有它自己的样式表 user agent stylesheet，浏览器依据开发者和自己的样式表计算出最终的 CSS 样式属性然后构建一个 node。
+
+假如一个 CSS 属性开发者和浏览器都没有设定，它的值将会被设置为 W3C CSS 标准的默认值。在设置默认值时，也会参考 ***W3C*** 中的继承规则。
+
 例如 HTML 元素没有 `color` 和 `font-size` 属性则会继承父元素的值。所以有这些属性的 HTML 元素的所有子元素都继承。这就是 **cascading of styles**，命名为 CSS，`Cascading Style Sheets` 的原因。这就是浏览器构建 CSSOM 的原因，CSSOM 是一种基于 CSS 级联规则计算样式的树状结构。
 
 ![alt](https://miro.medium.com/max/357/1*DJg1yRx-AzkZposWbJKcaA.png)

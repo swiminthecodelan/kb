@@ -102,10 +102,38 @@ parser-blocking script 是一个阻止解析 HTML 的 script 文件。当浏览�
 
 浏览器引擎使用服务器获取的文本文档形式的 HTML 构建 DOM 树。相似的，它使用样式表内容构建 CSSOM 树，例如从外部 CSS 文件或 HTML 中的嵌入（以及内联）CSS。DOM 和 CSSOM 树是同时在主线程中构建的。彼此组合成 Render Tree 并打印在页面。Render Tree 与 DOM Tree 一样都是逐渐生成的，但是 CSSOM 树不是。
 
-当浏览器找到一个 `<style>` 块，将会解析**所有**内嵌的 CSS 并更新 CSSOM 树。之后，继续以正常的方式解析 HTML。另一种情况是浏览器遇到一个外部样式表。与外部脚本文件不同，外部样式表不是 parser-blocking 资源，因此浏览器会在后台下载并继续 DOM parsing。
+当浏览器找到一个 `<style>` 块或者是行内样式，将会解析**所有**内嵌的 CSS 并更新 CSSOM 树。之后，继续以正常的方式解析 HTML。另一种情况是浏览器遇到一个外部样式表。与外部脚本文件不同，外部样式表不是 parser-blocking 资源，因此浏览器会在后台下载并继续 DOM parsing。
 
 与 HTML 文件构建 DOM 的方式不同，浏览器不会一个一个字节的根据样式表文件并加入 CSSOM 树，原因是在文件尾部的样式有可能也会覆盖头部样式。因此如果采取逐渐生成 CSSOM 树的话，将会因为**样式不断被覆盖**导致 CSSOM 树不断改变，**Render Tree** 不断渲染。看到元素在屏幕上改变样式将是一种不愉快的用户体验。由于 CSS 样式是级联的，因此一项规则更改会影响许多元素。
 
 CSSOM 树在处理完样式表所有的 CSS 后立即更新，然后 Render Tree 也会随之更新并渲染在屏幕上。
 
-CSS 是一个 render-blocking 资源。
+CSS 是一个 render-blocking 资源。一旦浏览器请求获取一个外部样式表，Render Tree 构建将会暂停。因此关键渲染路径也被卡住，屏幕上不会渲染任何东西。然而，当后台在下载外部样式表时，DOM 树仍然会继续构建。
+
+![alt](https://miro.medium.com/max/700/1*y3QmSfyergjmVV32nH7tPA.gif)
+
+浏览器使用了旧状态的 CSSOM tree 生成 Render Tree，随着 HTML 被解析以逐步在屏幕上呈现内容。在这种情况下，一旦外部样式表下载完成，解析生成新的 CSSOM 树，Render Tree 也会随之更新并渲染。新的样式会覆盖旧的样式，也会导致非常差的用户体验 Flash of Unstyled Content。因此建议尽早加载所有外部样式表，在 `head` 部分内。
+
+CSSOM 提供了高层次的 JS API 操作 DOM 元素的样式。在后台下载样式表时，主线程仍然可以执行 JS，并在 JS 中获取 DOM 元素的样式。当样式表下载完成后，CSSOM 会更新并改变 DOM 元素的 CSS properties。更新之前 JS 中获取的 DOM 元素的样式就会失效。因此在后台下载样式表时执行 JS 是不安全的。
+
+根据 HTML5 规范，浏览器可以下载一个脚本文件，但除非所有之前的样式表都已解析，不然不会执行。样式表阻塞了 script 的执行，因此将这种样式表叫做 script-blocking 样式表或者是 script-blocking CSS。
+
+![alt](https://miro.medium.com/max/700/1*atsh0R6Do25SriYvvskkgA.gif)
+
+### Document’s `DOMContentLoaded` Event
+
+`DOMContentLoaded` 事件标记浏览器完整构建并可以安全访问 DOM 树的时间。触发 `DCL` 事件包含了许多因素。
+
+如果 HTML 不包含任何脚本，DOM parsing 不会阻塞。当 HTML 解析完成后，浏览器将尽可能快的触发 `DCL`。如果有 parser-blocking 脚本，`DCL` 则必须等到脚本下载并执行完成。在没有外部脚本的情况下，`DCL` 会等待样式表加载。`DCL` 标记了整个 DOM 树的就绪时间，但 CSSOM 完全构建之前，访问 DOM 的样式信息是不安全的。因此大多数浏览器都会等待所有的外部样式加载并解析。
+
+script-blocking 样式表会延迟 `DCL`。在这种情况下，脚本会等待该样式表加载完成，DOM 树不会构建完成。
+
+`DCL` 是一个网站性能的指标。应该优化 `DCL`，将其尽可能早的触发。一个最佳实践是对 `script` 元素使用 `defer` 和 `async`,浏览器便可以在后台下载脚本时执行其他任务。第二点，应该优化 script-blocking 和 render-blocking 样式表。
+
+### Window's `load` event
+
+JS 会阻塞 DOM 树的构建，但是对于外部样式表以及 images、videos 等文件不是这样。
+
+`load` 标记了外部样式表和文件下载完成，浏览器结束下载的时间。
+
+![alt](https://miro.medium.com/max/700/1*DuLBecXpJjFh1qnakXjWWg.png)

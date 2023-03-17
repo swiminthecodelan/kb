@@ -22,7 +22,7 @@ CORS 请求默认不包含 Cookie 信息，需要浏览器将 withCredentials �
 非简单请求在正式请求之前增加一次 HTTP 查询请求，称为预检请求（preflight），询问服务器网页域名是否在许可名单以及允许使用的 HTTP 方法和头信息字段。只有得到肯定答复浏览器才会发出正式的请求。11111432423
 
 预检请求的用的请求方法是 OPTIONS，头信息携带 Origin。还包括 Access-Control-Request-Method 列出用到哪些 HTTP 方法、Access-Control-Request-Headers 指定额外发送的头信息字段。
-
+dada
 服务器返回的 Access-Control-Allow-Origin 不包括浏览器的域则表明不同意。还包括  Access-Control-Allow-Credentials、Access-Control-Allow-Headers、Access-Control-Request-Method、Access-Control-Max-age。
 
 预检通过后会发送正常的请求，与简单请求一样，浏览器请求会包含 Origin 和服务器返回包含 Access-Control-Allow-Origin。dad

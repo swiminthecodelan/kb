@@ -25,4 +25,4 @@ CORS 请求默认不包含 Cookie 信息，需要浏览器将 withCredentials �
 
 服务器返回的 Access-Control-Allow-Origin 不包括浏览器的域则表明不同意。还包括  Access-Control-Allow-Credentials、Access-Control-Allow-Headers、Access-Control-Request-Method、Access-Control-Max-age。
 
-预检通过后会发送正常的请求，与简单请求一样，浏览器请求会包含 Origin 和服务器返回包含 Access-Control-Allow-Origin。
+预检通过后会发送正常的请求，与简单请求一样，浏览器请求会包含 Origin 和服务器返回包含 Access-Control-Allow-Origin。dad

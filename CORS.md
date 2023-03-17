@@ -19,7 +19,7 @@ CORS 请求默认不包含 Cookie 信息，需要浏览器将 withCredentials �
 
 对服务器提出特殊要求的请求，比如请求方法是 PUT、Detele，或 Content-Type 为 application/json。
 
-非简单请求在正式请求之前增加一次 HTTP 查询请求，称为预检请求（preflight），询问服务器网页域名是否在许可名单以及允许使用的 HTTP 方法和头信息字段。只有得到肯定答复浏览器才会发出正式的请求。
+非简单请求在正式请求之前增加一次 HTTP 查询请求，称为预检请求（preflight），询问服务器网页域名是否在许可名单以及允许使用的 HTTP 方法和头信息字段。只有得到肯定答复浏览器才会发出正式的请求。11111
 
 预检请求的用的请求方法是 OPTIONS，头信息携带 Origin。还包括 Access-Control-Request-Method 列出用到哪些 HTTP 方法、Access-Control-Request-Headers 指定额外发送的头信息字段。
 

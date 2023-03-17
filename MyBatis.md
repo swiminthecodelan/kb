@@ -62,3 +62,7 @@
     - mapper 接口方法的参数时实体类类型
     - 实体类通过get方法的名字，不是属性，存在只有get方法，没有属性的情况。mybatis 不支持函数重载，无法识别相同的方法名不同的参数。例如在mapper 里声明两个方法，相同的 insertUser，xml 中使用同一个 insert id，并不能根据参数进行方法匹配。
     - @Param
+
+git clone https://github.com/zsh-users/zsh-autosuggestions /home/tyler/.oh-my-zsh/custom/plugins/zsh-autosuggestions
+
+git clone https://github.com/jirutka/zsh-shift-select.git /home/tyler/.oh-my-zsh/custom/plugins/zsh-shift-select
